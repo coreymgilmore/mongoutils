@@ -55,7 +55,7 @@ var (
 //readPreference is an mgo consistency constant (Eventual, Monotonic, Strong)
 //writeConcern is an mgo *Safe type
 //saves the connected session pool to a global variable.
-func Connect(servers string, database string, readPreference int, writeConcern *mgo.Safe) {
+func Connect(servers string, database string, readPreference mgo.Mode, writeConcern *mgo.Safe) {
 	//connection uri
 	uri := servers + database
 
