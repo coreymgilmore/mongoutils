@@ -37,3 +37,34 @@ To use this library, the user needs to do a bit of setup first.  This is done so
 	- Basically, when do you consider a write successful? When it is aknowledged, written to disk, written to many disks?
 	- Default: Majority & Fsync aka a majority of the available servers must have written the write to disk.
 
+---
+
+##Functions
+
+###Connect()
+Connect to your DB(s).  Stores the session connection data into a global variable.
+
+###NoResult()
+Checks the "error" returned from a "Find One" (mgo .One()) func to see if the error means no data was found for the query.
+
+Ex.:
+```go
+data := struct{}
+err  := db.DB(DATABASE).C(COLLECTION).Find(bson.M{"username":"test@test.com"}).One(&data)
+if mongoutils.NoResult(err) {
+	//no results
+} else {
+	//handle data found or other errors
+}
+```
+###GetObjectIdFromString()
+Gets the MongoDB BSON ObjectId representation of a hexidecimal string.  Returns an error if a string cannot be converted.
+
+###GetStringFromObjectId()
+Self explainatory.  Use the string representation of an ObjectId for user facing tasks.
+
+###Limit()
+Used if you are making API calls.  Grabs a limit from a form value variable, "limit".  Allows users to set limits instead of hardcoded on the back end.
+
+###Sort()
+Same as `Limit` above but for sort fields.  Only allows one field to be sorted.  Name of field can start with (-) to sort in decending order.
