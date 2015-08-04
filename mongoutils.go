@@ -55,7 +55,7 @@ var (
 //readPreference is an mgo consistency constant (Eventual, Monotonic, Strong)
 //writeConcern is an mgo *Safe type
 //saves the connected session pool to a global variable.
-func Connect(servers string, database string, readPreference interface{}, writeConcern *mgo.Safe) {
+func Connect(servers string, database string, readPreference int, writeConcern *mgo.Safe) {
 	//connection uri
 	uri := servers + database
 
@@ -69,7 +69,7 @@ func Connect(servers string, database string, readPreference interface{}, writeC
 
 	//set db consistency
 	//read preference
-	session.SetMode(readPreference, true)
+	setReadPreference(readPreference)
 
 	//set safety mode
 	//write concern
@@ -86,6 +86,23 @@ func Connect(servers string, database string, readPreference interface{}, writeC
 //using the mgo Close() function
 func Close() {
 	SESSION.Close()
+	return
+}
+
+//SET READ PREFERENCE
+//0, 1, 2 are from mgo documents
+//need to do this since mgo.mode is not exported
+func setReadPreference(input int) {
+	if input == 0 {
+		SESSION.SetMode(mgo.Eventual, true)
+	} else if input == 1 {
+		SESSION.SetMode(mgo.Monotonic, true)
+	} else if input == 2 {
+		SESSION.SetMode(mgo.Strong, true)
+	} else {
+		log.Println("mongoutils.go-SetReadPreference error")
+	}
+
 	return
 }
 
