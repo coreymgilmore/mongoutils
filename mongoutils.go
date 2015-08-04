@@ -1,13 +1,17 @@
 /*
-Package mongoutils is used to simplify usage of MongoDB.
-Use this package to connect, disconnect, host mgo session data, collection names, etc.
-Also use this package's functions for a simpler code base elsewhere in your go program.
+Package mongoutils is used to simplify some usage of the mgo MongoDB driver.
 
-This package uses the mgo driver for MongoDB. No other drivers are supported.
+Use this package to connect, disconnect, host mgo session data (global variable), and perform some simple functions.
+Basically, this library helps clean up your code base elsewhere.
+
+This package uses and requires the mgo driver for MongoDB. No other drivers are supported.
 
 When connecting to a MongoDB, this library will store the connection data in a global variable saved in this file.
 Include this file wherever you need to use your DB.
 However, you must copy the session (per mgo documents) in order to use different connections to the database (aka pooling connections instead of using only one connection).
+
+It is highly suggested you create a "mongodetails.go" file in your project for storing your servers, database, and collection names as constants.
+This is result is easier maintenance of your project since these values are saved in one location for easy editing.
 */
 
 package mongoutils
@@ -23,28 +27,6 @@ import (
 )
 
 const (
-	//DB CONFIG
-	//servers are listed as "host1:port, host2:port" and at least one host must be given
-	SERVERS  = "localhost:27017/"
-	DATABASE = "databaseName"
-	URI      = SERVERS + DATABASE
-
-	//COLLECTIONS
-	//list collection names for easy use elsewhere.
-	//provides one place for changing a collection name if necessary
-	COLL_USERS   = "users"
-	COLL_HISTORY = "history"
-	//...
-
-	//READ PREFERENCE
-	//see mgo documents for help
-	READ_PREFERENCE = mgo.Monotonic
-
-	//WRITE CONCERN
-	//see mgo documents for help
-	WRITE_CONCERN = &mgo.Safe{WMode: "majority", FSync: true}
-
-	//DEFAULTS
 	ID_LENGTH           = 24
 	LIMIT_DEFAULT_VALUE = 5
 	LIMIT_RETURN_ALL    = 0
@@ -53,7 +35,7 @@ const (
 
 var (
 	//GLOBAL SESSION DATA
-	MGO_SESSION *mgo.Session
+	SESSION *mgo.Session
 
 	//ERROR MESSAGES
 	ErrIdBadLength = errors.New("idMustBe24CharactersLong")
@@ -64,33 +46,42 @@ var (
 //*********************************************************************************************************************************
 //CONNECT & DISCONNECT
 
-//CONNECT TO DB
-func Connect() {
+//CONNECT TO DB AND SETUP WRITE CONCERN AND READ PREFERENCE
+//servers is string of at least one server to connect to ("localhost:27017/") and should be many hosts if using a replica set
+//database is the name of your database to connect to
+//readPreference is an mgo consistency constant (Eventual, Monotonic, Strong)
+//writeConcern is an mgo *Safe type
+func Connect (servers string, database string, readPreference int, writeConcern *mgo.Safe) {
+	//connection uri
+	uri := servers + database
+
 	//connect to db
-	session, err := mgo.Dial(URI)
+	session, err := mgo.Dial(uri)
 	if err != nil {
-		log.Println("mongoConnectError")
+		log.Println("mongoutils.go-Connect error")
 		log.Panicln(err)
 		return
 	}
 
 	//set db consistency
 	//read preference
-	session.SetMode(READ_PREFERENCE, true)
+	session.SetMode(readPreference, true)
 
 	//set safety mode
 	//write concern
-	session.SetSafe(WRITE_CONCERN)
+	session.SetSafe(writeConcern)
 
-	//store connection in global variable
-	log.Println("MongoDB - Connected")
-	MGO_SESSION = session
+	//store session in global variable
+	//access this session by importing this file
+	log.Println("mongoutils.go-Connect okay")
+	SESSION = session
 	return
 }
 
 //CLOSE THE DB CONNECTION
+//using the mgo Close() function
 func Close() {
-	MGO_SESSION.Close()
+	SESSION.Close()
 	return
 }
 
