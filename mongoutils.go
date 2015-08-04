@@ -10,9 +10,11 @@ When connecting to a MongoDB, this library will store the connection data in a g
 Include this file wherever you need to use your DB.
 However, you must copy the session (per mgo documents) in order to use different connections to the database (aka pooling connections instead of using only one connection).
 
-It is highly suggested you create a another file in your project for storing your servers, database, and collection names as constants.
+It is highly suggested that you create another file in your project for storing your servers, database, and collection names as constants.
 The result is easier maintenance of your project since these values are saved in one location for easy editing.
 You can also store your global session data in this file instead of relying on the global variable below.
+
+Note: this package is not meant to meant for production environments.
 */
 
 package mongoutils
