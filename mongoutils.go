@@ -10,8 +10,9 @@ When connecting to a MongoDB, this library will store the connection data in a g
 Include this file wherever you need to use your DB.
 However, you must copy the session (per mgo documents) in order to use different connections to the database (aka pooling connections instead of using only one connection).
 
-It is highly suggested you create a "mongodetails.go" file in your project for storing your servers, database, and collection names as constants.
-This is result is easier maintenance of your project since these values are saved in one location for easy editing.
+It is highly suggested you create a another file in your project for storing your servers, database, and collection names as constants.
+The result is easier maintenance of your project since these values are saved in one location for easy editing.
+You can also store your global session data in this file instead of relying on the global variable below.
 */
 
 package mongoutils
@@ -51,7 +52,8 @@ var (
 //database is the name of your database to connect to
 //readPreference is an mgo consistency constant (Eventual, Monotonic, Strong)
 //writeConcern is an mgo *Safe type
-func Connect (servers string, database string, readPreference int, writeConcern *mgo.Safe) {
+//saves the connected session pool to a global variable.
+func Connect(servers string, database string, readPreference int, writeConcern *mgo.Safe) {
 	//connection uri
 	uri := servers + database
 
