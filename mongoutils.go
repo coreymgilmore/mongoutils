@@ -24,6 +24,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -188,7 +189,8 @@ func GetStringFromObjectId(input bson.ObjectId) string {
 
 //GET A LIMIT FOR NUMBER FOR RESULTS TO RETURN FROM GET VARIABLE
 //return the limit as an integer to use in db query
-//will always return at least 5 since that is the default
+//5 is the default if the limit form value is not understood
+//a limit of 0 (zero) actually returns all results, not none
 //gets the limit value from an http GET form value i.e. example.com?limit=10
 func Limit(r *http.Request) int {
 	//get value from get variable
@@ -216,17 +218,23 @@ func Limit(r *http.Request) int {
 }
 
 //GET A FIELD TO SORT FIND RESULTS BY FROM GET VARIABLE
-//can only handle a single field to sort by
-//use "-" in front of field name to sort by reverse order
-//gets the sort value from an http GET form value i.e. example.com?sort=birthday
-func Sort(r *http.Request) string {
-	//get value from get variable
+//you can sort by one or many fields, each field name separated by a comma without whitespace
+//you can prepend a (-) minus sign to sort in decending order
+//example.log/?sort=birthday,-username
+//make sure to use the value this function returns as sortOrder... (note three periods) in mgo Sort()
+//this way mgo will apply all sorts to your query
+func Sort(r *http.Request) []string {
+	//parse the request form values
+	r.ParseForm()
 	sort := r.FormValue("sort")
 
 	//check if there is a value set
 	if len(sort) == 0 {
-		return SORT_DEFAULT
+		return []string{SORT_DEFAULT}
 	}
 
-	return sort
+	//split the results to sort by many fields
+	split := strings.Split(sort, ",")
+
+	return split
 }
